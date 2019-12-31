@@ -8,6 +8,7 @@
 // トークンの種類
 typedef enum {
   TK_RESERVED, // 記号
+  TK_IDENT,    // 
   TK_NUM,      // 整数トークン
   TK_EOF,      // 入力の終わりを表すトークン
 } TokenKind;
@@ -26,6 +27,7 @@ struct Token {
 void error(char *fmt, ...);
 void error_at(char *loc, char *fmt, ...);
 bool consume(char *op);
+Token *consume_ident();
 void expect(char *op);
 int expect_number(void);
 bool at_eof(void);
@@ -47,6 +49,8 @@ typedef enum {
   ND_LT,  // <
   ND_LE,  // <=
   ND_NUM, // 整数
+  ND_ASSIGN, // 割当て
+  ND_LVAR,   // ローカル変数
 } NodeKind;
 
 typedef struct Node Node;
@@ -54,9 +58,10 @@ typedef struct Node Node;
 // 抽象構文木のノードの型
 struct Node {
   NodeKind kind; // ノードの型
-  Node *lhs; // 左辺
-  Node *rhs; // 右辺
-  int val; // kindがND_ENUMの場合のみ使う
+  Node *lhs;     // 左辺
+  Node *rhs;     // 右辺
+  int val;       // kindがND_ENUMの場合のみ使う
+  int offset;    // kindがDV_LVARの場合のみ使う。ローカル変数のRBPからのオフセットを表す
 };
 
 Node *expr(void);

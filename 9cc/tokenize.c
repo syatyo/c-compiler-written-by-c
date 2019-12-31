@@ -41,6 +41,15 @@ bool consume(char *op) {
 
 }
 
+Token *concume_ident() {
+    if (token->kind != TK_IDENT) {
+        return NULL;
+    }
+    Token *tmpToken = token;
+    token = token->next;
+    return tmpToken;
+}
+
 // 次のトークンが期待している記号のときには、トークンを1つ読み進める。
 // それ以外の場合にはエラーを報告する。
  void expect(char *op) {
@@ -88,33 +97,38 @@ Token *tokenize(void) {
   while (*p) {
     // 空白文字をスキップ
     if (isspace(*p)) {
-      p++;
-      continue;
+        p++;
+        continue;
     }
 
-     // Multi-letter punctuator
-     if (startswith(p, "==") || startswith(p, "!=") ||
-         startswith(p, "<=") || startswith(p, ">=")) {
-       cur = new_token(TK_RESERVED, cur, p, 2);
-       p += 2;
-       continue;
-     }
+    // Multi-letter punctuator
+    if (startswith(p, "==") || startswith(p, "!=") ||
+        startswith(p, "<=") || startswith(p, ">=")) {
+            cur = new_token(TK_RESERVED, cur, p, 2);
+            p += 2;
+            continue;
+    }
 
-     // Single-letter punctuator
-     if (strchr("+-*/()<>", *p)) {
-       cur = new_token(TK_RESERVED, cur, p++, 1);
-       continue;
-     }
+    // Single-letter punctuator
+    if (strchr("+-*/()<>", *p)) {
+        cur = new_token(TK_RESERVED, cur, p++, 1);
+        continue;
+    }
+
+    // Local variables
+    if ('a' <= *p && *p <= 'z') {
+        cur = new_token(TK_IDENT, cur, p++, 1);
+        continue;
+    }
 
     // Integer literal
-     if (isdigit(*p)) {
-       cur = new_token(TK_NUM, cur, p, 0);
-       char *q = p;
-       cur->val = strtol(p, &p, 10);
-       cur->len = p - q;
-       continue;
-     }
-
+    if (isdigit(*p)) {
+        cur = new_token(TK_NUM, cur, p, 0);
+        char *q = p;
+        cur->val = strtol(p, &p, 10);
+        cur->len = p - q;
+        continue;
+    }
 
     error_at(token->str, "トークナイズできません");
   }
